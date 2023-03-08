@@ -1,0 +1,91 @@
+version: "3.4"
+
+services:
+
+  web:
+    image: 127.0.0.1:5000/sap
+    build: "./"
+    restart: always
+    deploy:
+      replicas: 16
+
+    depends_on:
+      - db
+
+    volumes:
+      - type: volume
+        source: volume-sap
+        target: /var/www/html
+
+    ports:
+      - "4400:80"
+
+    networks:
+      - frontend
+      - backend
+
+    # links:
+    #   - db:database
+
+
+
+  db:
+      image: 127.0.0.1:4000/banco
+      build: "./master"
+      environment:
+        MYSQL_ROOT_PASSWORD: "projeto123"
+        MYSQL_DATABASE: "crud_clientes"
+      ports:
+        - "3305:3306"
+
+      volumes:
+      - type: volume
+        source: volume-banco
+        target: /var/lib/mysql
+
+
+      # deploy:
+      #   placement:
+      #     constraints: [node.role == manager]
+
+
+      # volumes:
+      #   - ./mysql-p:/var/lib/mysql
+      networks:
+        backend:
+          ipv4_address: 10.0.33.3
+        # aliases:
+        #   - database
+
+  phpmyadmin:
+      image: phpmyadmin/phpmyadmin
+      environment:
+        MYSQL_ROOT_PASSWORD: "projeto123"
+      ports:
+        - "8080:80"
+      volumes:
+        - ../data/php/admin/uploads4.ini:/usr/local/etc/php/conf.d/php-phpmyadmin.ini
+
+      networks:
+        - backend
+
+
+
+
+volumes:
+  volume-sap:
+  volume-banco:
+    
+
+networks:
+  frontend:
+  backend:
+    ipam:
+      config:
+        - subnet: "10.0.33.0/24"
+
+    
+
+
+
+  
